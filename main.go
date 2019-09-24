@@ -113,6 +113,8 @@ func check(ctx context.Context, images <-chan string) error {
 				fmt.Println(failure, img)
 				if err == image.Incomplete {
 					fmt.Fprintln(os.Stderr, img)
+				} else {
+					return err
 				}
 			} else {
 				fmt.Println(success, img)
