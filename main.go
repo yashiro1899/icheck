@@ -8,7 +8,6 @@ import (
 	"os/signal"
 	"path/filepath"
 	"runtime"
-	"time"
 
 	"github.com/bilibili/kratos/pkg/sync/errgroup"
 	"github.com/urfave/cli"
@@ -40,13 +39,13 @@ func interrupt(cancel context.CancelFunc) {
 	signal.Notify(c, os.Interrupt)
 	<-c
 	cancel()
-	time.Sleep(time.Second)
 }
 
 func start(ctx context.Context, roots []string) error {
+	images := make(chan string)
 	eg := errgroup.WithContext(ctx)
-
 	eg.GOMAXPROCS(runtime.NumCPU())
+
 	for _, v := range roots {
 		root := v
 		eg.Go(func(ctx context.Context) error {
@@ -54,17 +53,27 @@ func start(ctx context.Context, roots []string) error {
 				if err != nil {
 					return err
 				}
-
+				if !info.Mode().IsRegular() {
+					return nil
+				}
 				select {
+				case images <- path:
+					return nil
 				case <-ctx.Done():
 					return ctx.Err()
-				default:
-					fmt.Println(info.Name())
 				}
-				return nil
 			})
 		})
 	}
 
-	return eg.Wait()
+	go func() {
+		eg.Wait()
+		close(images)
+	}()
+
+	for i := range images {
+		fmt.Println(i)
+	}
+
+	return nil
 }
