@@ -6,11 +6,19 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"path"
 	"path/filepath"
 	"runtime"
 
+	"imagechecksum/image"
+
 	"github.com/bilibili/kratos/pkg/sync/errgroup"
 	"github.com/urfave/cli"
+)
+
+const (
+	success = "✔"
+	failure = "✘"
 )
 
 func main() {
@@ -42,10 +50,10 @@ func interrupt(cancel context.CancelFunc) {
 }
 
 func start(ctx context.Context, roots []string) error {
-	images := make(chan string)
 	eg := errgroup.WithContext(ctx)
 	eg.GOMAXPROCS(runtime.NumCPU())
 
+	images := make(chan string)
 	for _, v := range roots {
 		root := v
 		eg.Go(func(ctx context.Context) error {
@@ -70,10 +78,39 @@ func start(ctx context.Context, roots []string) error {
 		eg.Wait()
 		close(images)
 	}()
+	return check(ctx, images)
+}
+
+func check(ctx context.Context, images <-chan string) error {
+	eg := errgroup.WithCancel(ctx)
+	eg.GOMAXPROCS(runtime.NumCPU())
 
 	for i := range images {
-		fmt.Println(i)
-	}
+		checker := image.Get(path.Ext(i))
 
-	return nil
+		if checker == nil {
+			fmt.Fprintf(os.Stderr, "No checker for %q\n", i)
+			continue
+		}
+
+		img := i
+		eg.Go(func(ctx context.Context) error {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			default:
+			}
+
+			file, err := os.Open(img)
+			if err != nil {
+				return err
+			}
+			defer file.Close()
+
+			err = checker.Check(&ReaderAt{file})
+			fmt.Println(err)
+			return nil
+		})
+	}
+	return eg.Wait()
 }

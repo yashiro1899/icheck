@@ -1,4 +1,4 @@
-module image-checksum
+module imagechecksum
 
 go 1.13
 
