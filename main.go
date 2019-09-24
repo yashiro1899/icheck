@@ -19,6 +19,7 @@ import (
 const (
 	success = "✔"
 	failure = "✘"
+	skip    = "⚠"
 )
 
 func main() {
@@ -89,7 +90,7 @@ func check(ctx context.Context, images <-chan string) error {
 		checker := image.Get(path.Ext(i))
 
 		if checker == nil {
-			fmt.Fprintf(os.Stderr, "No checker for %q\n", i)
+			fmt.Println(skip, i)
 			continue
 		}
 
@@ -108,7 +109,14 @@ func check(ctx context.Context, images <-chan string) error {
 			defer file.Close()
 
 			err = checker.Check(&ReaderAt{file})
-			fmt.Println(err)
+			if err != nil {
+				fmt.Println(failure, img)
+				if err == image.Incomplete {
+					fmt.Fprintln(os.Stderr, img)
+				}
+			} else {
+				fmt.Println(success, img)
+			}
 			return nil
 		})
 	}
