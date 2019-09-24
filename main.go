@@ -17,9 +17,9 @@ import (
 )
 
 const (
-	success = "✔"
-	failure = "✘"
-	skip    = "⚠"
+	success = "\033[32m✔\033[0m"
+	failure = "\033[31m✘\033[0m"
+	skip    = "\033[33m⚠\033[0m"
 )
 
 func main() {
