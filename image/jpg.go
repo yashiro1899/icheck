@@ -6,11 +6,14 @@ import (
 
 type Jpg struct{}
 
-// start: ffd8
-// end:   ffd9
+func init() {
+	Register(new(Jpg))
+}
+
 func (j *Jpg) Check(ra io.ReaderAt) error {
 	b := make([]byte, 2)
 
+	// start: ffd8
 	_, err := ra.ReadAt(b, 0)
 	if err != nil {
 		return err
@@ -19,6 +22,7 @@ func (j *Jpg) Check(ra io.ReaderAt) error {
 		return Incomplete
 	}
 
+	// end: ffd9
 	for i := -2; i > -64; i-- {
 		_, err := ra.ReadAt(b, int64(i))
 		if err != nil {
@@ -33,8 +37,4 @@ func (j *Jpg) Check(ra io.ReaderAt) error {
 
 func (j *Jpg) Exts() []string {
 	return []string{".jpg", ".jpeg"}
-}
-
-func init() {
-	Register(new(Jpg))
 }
