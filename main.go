@@ -22,8 +22,23 @@ const (
 	skip    = "\033[33m⚠\033[0m"
 )
 
+var quiet bool
+
+func console(a ...interface{}) {
+	if quiet {
+		return
+	}
+	fmt.Println(a...)
+}
+
 func main() {
 	app := cli.NewApp()
+	app.Flags = []cli.Flag{
+		cli.BoolFlag{
+			Name:  "quiet, q",
+			Usage: "print incomplete only",
+		},
+	}
 	app.Name = "image-checksum"
 	app.Usage = "检查给定路径内所有图片的完整性"
 	app.UsageText = app.Name + " [roots...]"
@@ -33,6 +48,7 @@ func main() {
 			return cli.ShowAppHelp(c)
 		}
 
+		quiet = c.Bool("quiet")
 		ctx, cancel := context.WithCancel(context.Background())
 		go interrupt(cancel)
 		return start(ctx, c.Args())
@@ -90,7 +106,7 @@ func check(ctx context.Context, images <-chan string) error {
 		checker := image.Get(path.Ext(i))
 
 		if checker == nil {
-			fmt.Println(skip, i)
+			console(skip, i)
 			continue
 		}
 
@@ -110,14 +126,14 @@ func check(ctx context.Context, images <-chan string) error {
 
 			err = checker.Check(&ReaderAt{file})
 			if err != nil {
-				fmt.Println(failure, img)
+				console(failure, img)
 				if err == image.Incomplete {
 					fmt.Fprintln(os.Stderr, img)
 					return nil
 				}
 				return fmt.Errorf("%s: %w", img, err)
 			}
-			fmt.Println(success, img)
+			console(success, img)
 			return nil
 		})
 	}
