@@ -2,7 +2,6 @@ package image
 
 import (
 	"bytes"
-	"io"
 )
 
 type Jpg struct{}
@@ -11,7 +10,7 @@ func init() {
 	Register(new(Jpg))
 }
 
-func (j *Jpg) Check(ra io.ReaderAt) (result bool, err error) {
+func (j *Jpg) Check(ra ReaderAt) (result bool, err error) {
 	b := make([]byte, 2)
 
 	// start: ffd8

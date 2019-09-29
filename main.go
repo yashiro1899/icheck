@@ -116,13 +116,11 @@ func check(ctx context.Context, images <-chan string) error {
 			default:
 			}
 
-			file, err := os.Open(img)
+			ra, err := image.NewReaderAt(img)
 			if err != nil {
 				return err
 			}
-			defer file.Close()
-
-			ra := &ReaderAt{file}
+			defer ra.Close()
 
 			if ctx.Value("sniffing") == true {
 				checker, err = image.Sniff(ra)

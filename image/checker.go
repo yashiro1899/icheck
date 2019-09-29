@@ -8,8 +8,14 @@ import (
 )
 
 type Checker interface {
-	Check(io.ReaderAt) (bool, error)
+	Check(ReaderAt) (bool, error)
 	Exts() []string
+}
+
+type ReaderAt interface {
+	io.Closer
+	io.ReaderAt
+	Size() int64
 }
 
 var m = make(map[string]Checker)
@@ -27,7 +33,7 @@ func Get(ext string) Checker {
 	return nil
 }
 
-func Sniff(ra io.ReaderAt) (ch Checker, err error) {
+func Sniff(ra ReaderAt) (ch Checker, err error) {
 	b := make([]byte, 32)
 
 	_, err = ra.ReadAt(b, 0)

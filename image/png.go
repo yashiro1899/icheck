@@ -2,7 +2,6 @@ package image
 
 import (
 	"bytes"
-	"io"
 )
 
 type Png struct{}
@@ -11,7 +10,7 @@ func init() {
 	Register(new(Png))
 }
 
-func (p *Png) Check(ra io.ReaderAt) (result bool, err error) {
+func (p *Png) Check(ra ReaderAt) (result bool, err error) {
 	b := make([]byte, 8)
 
 	// start: 8950 4e47 0d0a 1a0a
