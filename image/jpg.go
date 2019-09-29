@@ -23,8 +23,8 @@ func (j jpg) Check(ra ReaderAt) (result bool, err error) {
 	}
 
 	// end: ffd9
-	for i := -2; i > -64; i-- {
-		_, err = ra.ReadAt(b, int64(i))
+	for i := int64(-2); i > ra.Size()/-2; i-- {
+		_, err = ra.ReadAt(b, i)
 		if err != nil {
 			return
 		}
