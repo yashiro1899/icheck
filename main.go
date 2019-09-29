@@ -22,10 +22,8 @@ const (
 	skip    = "\033[33m⚠\033[0m"
 )
 
-var quiet bool
-
-func console(a ...interface{}) {
-	if quiet {
+func console(ctx context.Context, a ...interface{}) {
+	if ctx.Value("quiet") == true {
 		return
 	}
 	fmt.Fprintln(os.Stderr, a...)
@@ -36,7 +34,11 @@ func main() {
 	app.Flags = []cli.Flag{
 		cli.BoolFlag{
 			Name:  "quiet, q",
-			Usage: "print incomplete only",
+			Usage: "只打印不完整图片列表",
+		},
+		cli.BoolFlag{
+			Name:  "sniffing, s",
+			Usage: "是否对图片类型进行嗅探",
 		},
 	}
 	app.Name = "image-checksum"
@@ -48,9 +50,12 @@ func main() {
 			return cli.ShowAppHelp(c)
 		}
 
-		quiet = c.Bool("quiet")
 		ctx, cancel := context.WithCancel(context.Background())
 		go interrupt(cancel)
+
+		for _, f := range c.GlobalFlagNames() {
+			ctx = context.WithValue(ctx, f, c.GlobalBool(f))
+		}
 		return start(ctx, c.Args())
 	}
 
@@ -106,7 +111,7 @@ func check(ctx context.Context, images <-chan string) error {
 		checker := image.Get(path.Ext(i))
 
 		if checker == nil {
-			console(skip, i)
+			console(ctx, skip, i)
 			continue
 		}
 
@@ -126,14 +131,14 @@ func check(ctx context.Context, images <-chan string) error {
 
 			err = checker.Check(&ReaderAt{file})
 			if err != nil {
-				console(failure, img)
+				console(ctx, failure, img)
 				if err == image.Incomplete {
 					fmt.Println(img)
 					return nil
 				}
 				return fmt.Errorf("%s: %w", img, err)
 			}
-			console(success, img)
+			console(ctx, success, img)
 			return nil
 		})
 	}
