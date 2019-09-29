@@ -4,13 +4,13 @@ import (
 	"bytes"
 )
 
-type Jpg struct{}
+type jpg struct{}
 
 func init() {
-	Register(new(Jpg))
+	Register(jpg{})
 }
 
-func (j *Jpg) Check(ra ReaderAt) (result bool, err error) {
+func (j jpg) Check(ra ReaderAt) (result bool, err error) {
 	b := make([]byte, 2)
 
 	// start: ffd8
@@ -35,6 +35,6 @@ func (j *Jpg) Check(ra ReaderAt) (result bool, err error) {
 	return
 }
 
-func (j *Jpg) Exts() []string {
+func (j jpg) Exts() []string {
 	return []string{".jpg", ".jpeg"}
 }

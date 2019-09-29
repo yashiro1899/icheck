@@ -4,13 +4,13 @@ import (
 	"bytes"
 )
 
-type Png struct{}
+type png struct{}
 
 func init() {
-	Register(new(Png))
+	Register(png{})
 }
 
-func (p *Png) Check(ra ReaderAt) (result bool, err error) {
+func (p png) Check(ra ReaderAt) (result bool, err error) {
 	b := make([]byte, 8)
 
 	// start: 8950 4e47 0d0a 1a0a
@@ -31,6 +31,6 @@ func (p *Png) Check(ra ReaderAt) (result bool, err error) {
 	return bytes.Equal(b, []byte("\x44\xAE\x42\x60\x82")), nil
 }
 
-func (p *Png) Exts() []string {
+func (p png) Exts() []string {
 	return []string{".png"}
 }
