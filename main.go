@@ -28,7 +28,7 @@ func console(a ...interface{}) {
 	if quiet {
 		return
 	}
-	fmt.Println(a...)
+	fmt.Fprintln(os.Stderr, a...)
 }
 
 func main() {
@@ -128,7 +128,7 @@ func check(ctx context.Context, images <-chan string) error {
 			if err != nil {
 				console(failure, img)
 				if err == image.Incomplete {
-					fmt.Fprintln(os.Stderr, img)
+					fmt.Println(img)
 					return nil
 				}
 				return fmt.Errorf("%s: %w", img, err)
