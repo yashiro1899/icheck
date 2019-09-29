@@ -147,11 +147,11 @@ func check(ctx context.Context, images <-chan string) error {
 				return fmt.Errorf("%s: %w", img, err)
 			}
 
-			if !result {
+			if result {
+				console(ctx, success, img)
+			} else {
 				console(ctx, failure, img)
 				fmt.Println(img)
-			} else {
-				console(ctx, success, img)
 			}
 			return nil
 		})
