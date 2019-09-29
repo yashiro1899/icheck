@@ -1,6 +1,7 @@
 package image
 
 import (
+	"bytes"
 	"io"
 )
 
@@ -18,7 +19,7 @@ func (j *Jpg) Check(ra io.ReaderAt) (result bool, err error) {
 	if err != nil {
 		return
 	}
-	if !(b[0] == 0xff && b[1] == 0xd8) {
+	if !bytes.Equal(b, []byte("\xFF\xD8")) {
 		return
 	}
 
@@ -28,7 +29,7 @@ func (j *Jpg) Check(ra io.ReaderAt) (result bool, err error) {
 		if err != nil {
 			return
 		}
-		if b[0] == 0xff && b[1] == 0xd9 {
+		if bytes.Equal(b, []byte("\xFF\xD9")) {
 			return true, nil
 		}
 	}

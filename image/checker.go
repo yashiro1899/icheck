@@ -28,7 +28,7 @@ func Get(ext string) Checker {
 }
 
 func Sniff(ra io.ReaderAt) (ch Checker, err error) {
-	b := make([]byte, 512)
+	b := make([]byte, 32)
 
 	_, err = ra.ReadAt(b, 0)
 	if err != nil {
