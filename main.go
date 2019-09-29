@@ -22,13 +22,6 @@ const (
 	skip    = "\033[33m⚠\033[0m"
 )
 
-func console(ctx context.Context, a ...interface{}) {
-	if ctx.Value("quiet") == true {
-		return
-	}
-	fmt.Fprintln(os.Stderr, a...)
-}
-
 func main() {
 	app := cli.NewApp()
 	app.Flags = []cli.Flag{
@@ -157,4 +150,11 @@ func check(ctx context.Context, images <-chan string) error {
 		})
 	}
 	return eg.Wait()
+}
+
+func console(ctx context.Context, a ...interface{}) {
+	if ctx.Value("quiet") == true {
+		return
+	}
+	fmt.Fprintln(os.Stderr, a...)
 }
