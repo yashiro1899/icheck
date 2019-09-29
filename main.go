@@ -129,16 +129,30 @@ func check(ctx context.Context, images <-chan string) error {
 			}
 			defer file.Close()
 
-			err = checker.Check(&ReaderAt{file})
-			if err != nil {
-				console(ctx, failure, img)
-				if err == image.Incomplete {
-					fmt.Println(img)
+			ra := &ReaderAt{file}
+
+			if ctx.Value("sniffing") == true {
+				checker, err = image.Sniff(ra)
+				if err != nil {
+					return fmt.Errorf("%s: %w", img, err)
+				}
+				if checker == nil {
+					console(ctx, skip, i)
 					return nil
 				}
+			}
+
+			result, err := checker.Check(ra)
+			if err != nil {
 				return fmt.Errorf("%s: %w", img, err)
 			}
-			console(ctx, success, img)
+
+			if !result {
+				console(ctx, failure, img)
+				fmt.Println(img)
+			} else {
+				console(ctx, success, img)
+			}
 			return nil
 		})
 	}
