@@ -27,16 +27,16 @@ func main() {
 	app.Flags = []cli.Flag{
 		cli.BoolFlag{
 			Name:  "quiet, q",
-			Usage: "只打印不完整图片列表",
+			Usage: "print incomplete images only",
 		},
 		cli.BoolFlag{
 			Name:  "sniffing, s",
-			Usage: "是否对图片类型进行嗅探",
+			Usage: "determine the image type of the first 32 bytes of data",
 		},
 	}
 	app.Name = "image-checksum"
-	app.Usage = "检查给定路径内所有图片的完整性"
-	app.UsageText = app.Name + " [roots...]"
+	app.Usage = "find out incomplete images in paths"
+	app.UsageText = app.Name + " [paths...]"
 
 	app.Action = func(c *cli.Context) error {
 		if c.NArg() == 0 {
