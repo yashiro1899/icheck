@@ -31,3 +31,5 @@ GLOBAL OPTIONS:
 ```
 
 ## Examples
+
+![example](https://raw.githubusercontent.com/yashiro1899/icheck/master/example.png)
