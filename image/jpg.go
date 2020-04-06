@@ -13,15 +13,6 @@ func init() {
 func (j jpg) Check(ra ReaderAt) (result bool, err error) {
 	b := make([]byte, 2)
 
-	// start: ffd8
-	_, err = ra.ReadAt(b, 0)
-	if err != nil {
-		return
-	}
-	if !bytes.Equal(b, []byte("\xFF\xD8")) {
-		return
-	}
-
 	// end: ffd9
 	_, err = ra.ReadAt(b, -2)
 	if err != nil {

@@ -1,7 +1,6 @@
 package image
 
 import (
-	"bytes"
 	"encoding/binary"
 )
 
@@ -13,13 +12,8 @@ func init() {
 
 func (bm bmp) Check(ra ReaderAt) (result bool, err error) {
 	b := make([]byte, 6)
-
-	// start: "BM"
 	_, err = ra.ReadAt(b, 0)
 	if err != nil {
-		return
-	}
-	if !bytes.Equal(b[:2], []byte("BM")) {
 		return
 	}
 

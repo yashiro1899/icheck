@@ -11,19 +11,9 @@ func init() {
 }
 
 func (p png) Check(ra ReaderAt) (result bool, err error) {
-	b := make([]byte, 8)
-
-	// start: 8950 4e47 0d0a 1a0a
-	_, err = ra.ReadAt(b, 0)
-	if err != nil {
-		return
-	}
-	if !bytes.Equal(b, []byte("\x89PNG\x0D\x0A\x1A\x0A")) {
-		return
-	}
+	b := make([]byte, 5)
 
 	// end: 44ae 4260 82
-	b = b[:5]
 	_, err = ra.ReadAt(b, -5)
 	if err != nil {
 		return

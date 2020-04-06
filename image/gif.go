@@ -9,19 +9,9 @@ func init() {
 }
 
 func (g gif) Check(ra ReaderAt) (result bool, err error) {
-	b := make([]byte, 6)
-
-	// start: "GIF87a" or "GIF89a"
-	_, err = ra.ReadAt(b, 0)
-	if err != nil {
-		return
-	}
-	if !bytes.Equal(b, []byte("GIF87a")) && !bytes.Equal(b, []byte("GIF89a")) {
-		return
-	}
+	b := make([]byte, 2)
 
 	// end: 003b
-	b = b[:2]
 	_, err = ra.ReadAt(b, -2)
 	if err != nil {
 		return
