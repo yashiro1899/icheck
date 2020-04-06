@@ -27,6 +27,8 @@ const (
 	skip    = "\033[33m⚠\033[0m"
 )
 
+var cancel context.CancelFunc
+
 func main() {
 	app := cli.NewApp()
 	app.Flags = []cli.Flag{
@@ -45,8 +47,9 @@ func main() {
 			return cli.ShowAppHelp(c)
 		}
 
-		ctx, cancel := context.WithCancel(context.Background())
-		go interrupt(cancel)
+		ctx, cc := context.WithCancel(context.Background())
+		cancel = cc
+		go interrupt()
 
 		for _, fn := range c.GlobalFlagNames() {
 			ctx = context.WithValue(ctx, fn, c.GlobalBool(fn))
@@ -59,7 +62,7 @@ func main() {
 	}
 }
 
-func interrupt(cancel context.CancelFunc) {
+func interrupt() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	<-c
@@ -155,18 +158,19 @@ func check(ctx context.Context, images <-chan string) error {
 
 	err := eg.Wait()
 	close(lines)
+	<-ctx.Done()
 	return err
 }
 
 func console(ctx context.Context, lines <-chan Message) {
 	verbose := ctx.Value("verbose").(bool)
 	for m := range lines {
-		if !verbose {
-			continue
+		if verbose {
+			fmt.Fprint(os.Stderr, m.Error)
 		}
-		fmt.Fprint(os.Stderr, m.Error)
 		if m.Out != "" {
 			fmt.Println(m.Out)
 		}
 	}
+	cancel()
 }
