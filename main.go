@@ -98,8 +98,7 @@ func check(ctx context.Context, images <-chan string) error {
 	eg.GOMAXPROCS(runtime.NumCPU())
 
 	for i := range images {
-		checker := image.Get(path.Ext(i))
-		if checker == nil {
+		if chk := image.Get(path.Ext(i)); chk == nil {
 			console(ctx, skip, i)
 			continue
 		}
@@ -118,12 +117,12 @@ func check(ctx context.Context, images <-chan string) error {
 			}
 			defer ra.Close()
 
-			checker, err = image.Sniff(ra)
+			checker, err := image.Sniff(ra)
 			if err != nil {
 				return fmt.Errorf("%s: %w", img, err)
 			}
 			if checker == nil {
-				console(ctx, skip, i)
+				console(ctx, skip, img)
 				return nil
 			}
 
@@ -131,7 +130,6 @@ func check(ctx context.Context, images <-chan string) error {
 			if err != nil {
 				return fmt.Errorf("%s: %w", img, err)
 			}
-
 			if result {
 				console(ctx, success, img)
 			} else {

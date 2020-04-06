@@ -33,7 +33,7 @@ func Get(ext string) Checker {
 	return nil
 }
 
-func Sniff(ra ReaderAt) (ch Checker, err error) {
+func Sniff(ra ReaderAt) (chk Checker, err error) {
 	b := make([]byte, 32)
 
 	_, err = ra.ReadAt(b, 0)
@@ -48,8 +48,8 @@ func Sniff(ra ReaderAt) (ch Checker, err error) {
 	}
 
 	for _, ext := range exts {
-		ch = Get(ext)
-		if ch != nil {
+		chk = Get(ext)
+		if chk != nil {
 			return
 		}
 	}
