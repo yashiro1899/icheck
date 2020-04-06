@@ -16,10 +16,15 @@ import (
 	"github.com/urfave/cli"
 )
 
+type Message struct {
+	Error string
+	Out   string
+}
+
 const (
-	success = "\033[32m✔\033[0m "
-	failure = "\033[31m✘\033[0m "
-	skip    = "\033[33m⚠\033[0m "
+	success = "\033[32m✔\033[0m"
+	failure = "\033[31m✘\033[0m"
+	skip    = "\033[33m⚠\033[0m"
 )
 
 func main() {
@@ -65,7 +70,7 @@ func start(ctx context.Context, roots []string) error {
 	eg := errgroup.WithContext(ctx)
 	eg.GOMAXPROCS(runtime.NumCPU())
 
-	images := make(chan string)
+	images := make(chan string, 32)
 	for _, v := range roots {
 		root := v
 		eg.Go(func(ctx context.Context) error {
@@ -97,9 +102,16 @@ func check(ctx context.Context, images <-chan string) error {
 	eg := errgroup.WithCancel(ctx)
 	eg.GOMAXPROCS(runtime.NumCPU())
 
+	lines := make(chan Message, 32)
+	go console(ctx, lines)
+
 	for i := range images {
+		m := Message{}
+		m.Error = failure + " "
+
 		if chk := image.Get(path.Ext(i)); chk == nil {
-			console(ctx, skip, i, "\n")
+			m.Error = fmt.Sprintf("%s %s\n", skip, i)
+			lines <- m
 			continue
 		}
 
@@ -122,8 +134,8 @@ func check(ctx context.Context, images <-chan string) error {
 				return fmt.Errorf("%s: %w", img, err)
 			}
 			if checker == nil {
-				console(ctx, failure)
-				fmt.Println(img)
+				m.Out = img
+				lines <- m
 				return nil
 			}
 
@@ -132,19 +144,29 @@ func check(ctx context.Context, images <-chan string) error {
 				return fmt.Errorf("%s: %w", img, err)
 			}
 			if result {
-				console(ctx, success, img, "\n")
+				m.Error = fmt.Sprintf("%s %s\n", success, img)
 			} else {
-				console(ctx, failure)
-				fmt.Println(img)
+				m.Out = img
 			}
+			lines <- m
 			return nil
 		})
 	}
-	return eg.Wait()
+
+	err := eg.Wait()
+	close(lines)
+	return err
 }
 
-func console(ctx context.Context, a ...interface{}) {
-	if ctx.Value("verbose") == true {
-		fmt.Fprint(os.Stderr, a...)
+func console(ctx context.Context, lines <-chan Message) {
+	verbose := ctx.Value("verbose").(bool)
+	for m := range lines {
+		if !verbose {
+			continue
+		}
+		fmt.Fprint(os.Stderr, m.Error)
+		if m.Out != "" {
+			fmt.Println(m.Out)
+		}
 	}
 }
