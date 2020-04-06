@@ -12,7 +12,7 @@ import (
 
 	"imagechecksum/image"
 
-	"github.com/bilibili/kratos/pkg/sync/errgroup"
+	"github.com/go-kratos/kratos/pkg/sync/errgroup"
 	"github.com/urfave/cli"
 )
 
@@ -26,17 +26,14 @@ func main() {
 	app := cli.NewApp()
 	app.Flags = []cli.Flag{
 		cli.BoolFlag{
-			Name:  "quiet, q",
-			Usage: "print incomplete images only",
-		},
-		cli.BoolFlag{
-			Name:  "sniffing, s",
-			Usage: "determine the image type of the first 32 bytes of data",
+			Name:  "verbose, V",
+			Usage: "show more",
 		},
 	}
 	app.Name = "image-checksum"
 	app.Usage = "find out incomplete images in paths"
 	app.UsageText = app.Name + " [paths...]"
+	app.Version = "0.1.0"
 
 	app.Action = func(c *cli.Context) error {
 		if c.NArg() == 0 {
@@ -46,8 +43,8 @@ func main() {
 		ctx, cancel := context.WithCancel(context.Background())
 		go interrupt(cancel)
 
-		for _, f := range c.GlobalFlagNames() {
-			ctx = context.WithValue(ctx, f, c.GlobalBool(f))
+		for _, fn := range c.GlobalFlagNames() {
+			ctx = context.WithValue(ctx, fn, c.GlobalBool(fn))
 		}
 		return start(ctx, c.Args())
 	}
@@ -102,7 +99,6 @@ func check(ctx context.Context, images <-chan string) error {
 
 	for i := range images {
 		checker := image.Get(path.Ext(i))
-
 		if checker == nil {
 			console(ctx, skip, i)
 			continue
@@ -122,15 +118,13 @@ func check(ctx context.Context, images <-chan string) error {
 			}
 			defer ra.Close()
 
-			if ctx.Value("sniffing") == true {
-				checker, err = image.Sniff(ra)
-				if err != nil {
-					return fmt.Errorf("%s: %w", img, err)
-				}
-				if checker == nil {
-					console(ctx, skip, i)
-					return nil
-				}
+			checker, err = image.Sniff(ra)
+			if err != nil {
+				return fmt.Errorf("%s: %w", img, err)
+			}
+			if checker == nil {
+				console(ctx, skip, i)
+				return nil
 			}
 
 			result, err := checker.Check(ra)
@@ -151,8 +145,7 @@ func check(ctx context.Context, images <-chan string) error {
 }
 
 func console(ctx context.Context, a ...interface{}) {
-	if ctx.Value("quiet") == true {
-		return
+	if ctx.Value("verbose") == true {
+		fmt.Fprintln(os.Stderr, a...)
 	}
-	fmt.Fprintln(os.Stderr, a...)
 }
