@@ -19,7 +19,7 @@ func (p webp) Check(ra ReaderAt) (result bool, err error) {
 	}
 
 	want := int64(binary.LittleEndian.Uint32(b[4:]))
-	return ra.Size() < want, nil
+	return ra.Size() >= want, nil
 }
 
 func (p webp) Exts() []string {
