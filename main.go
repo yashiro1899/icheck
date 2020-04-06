@@ -17,9 +17,9 @@ import (
 )
 
 const (
-	success = "\033[32m✔\033[0m"
-	failure = "\033[31m✘\033[0m"
-	skip    = "\033[33m⚠\033[0m"
+	success = "\033[32m✔\033[0m "
+	failure = "\033[31m✘\033[0m "
+	skip    = "\033[33m⚠\033[0m "
 )
 
 func main() {
@@ -99,7 +99,7 @@ func check(ctx context.Context, images <-chan string) error {
 
 	for i := range images {
 		if chk := image.Get(path.Ext(i)); chk == nil {
-			console(ctx, skip, i)
+			console(ctx, skip, i, "\n")
 			continue
 		}
 
@@ -122,7 +122,8 @@ func check(ctx context.Context, images <-chan string) error {
 				return fmt.Errorf("%s: %w", img, err)
 			}
 			if checker == nil {
-				console(ctx, skip, img)
+				console(ctx, failure)
+				fmt.Println(img)
 				return nil
 			}
 
@@ -131,9 +132,9 @@ func check(ctx context.Context, images <-chan string) error {
 				return fmt.Errorf("%s: %w", img, err)
 			}
 			if result {
-				console(ctx, success, img)
+				console(ctx, success, img, "\n")
 			} else {
-				console(ctx, failure, img)
+				console(ctx, failure)
 				fmt.Println(img)
 			}
 			return nil
@@ -144,6 +145,6 @@ func check(ctx context.Context, images <-chan string) error {
 
 func console(ctx context.Context, a ...interface{}) {
 	if ctx.Value("verbose") == true {
-		fmt.Fprintln(os.Stderr, a...)
+		fmt.Fprint(os.Stderr, a...)
 	}
 }
