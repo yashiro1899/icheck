@@ -26,7 +26,7 @@ func (g gif) Check(ra ReaderAt) (result bool, err error) {
 		return
 	}
 	for i := len(b); i > 1; i-- {
-		if bytes.Equal(b[i-2:i], []byte("\xFF\xD9")) {
+		if bytes.Equal(b[i-2:i], []byte("\x00\x3B")) {
 			return true, nil
 		}
 	}
