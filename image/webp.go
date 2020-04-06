@@ -1,6 +1,8 @@
 package image
 
-import "bytes"
+import (
+	"encoding/binary"
+)
 
 type webp struct{}
 
@@ -9,16 +11,15 @@ func init() {
 }
 
 func (p webp) Check(ra ReaderAt) (result bool, err error) {
-	b := make([]byte, 20)
+	b := make([]byte, 8)
 
-	// end: <?xpacket end='w'?>
-	_, err = ra.ReadAt(b, -20)
+	_, err = ra.ReadAt(b, 0)
 	if err != nil {
 		return
 	}
 
-	want := []byte("<?xpacket end='w'?>")
-	return bytes.Equal(b[1:], want) || bytes.Equal(b[:19], want), nil
+	want := int64(binary.LittleEndian.Uint32(b[4:]))
+	return ra.Size() >= want, nil
 }
 
 func (p webp) Exts() []string {
