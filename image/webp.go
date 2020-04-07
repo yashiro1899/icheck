@@ -18,7 +18,7 @@ func (p webp) Check(ra ReaderAt) (result bool, err error) {
 		return
 	}
 
-	want := int64(binary.LittleEndian.Uint32(b[4:]))
+	want := int64(binary.LittleEndian.Uint32(b[4:])) + 8
 	return ra.Size() >= want, nil
 }
 
