@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/signal"
@@ -133,6 +134,11 @@ func check(ctx context.Context, images <-chan string) error {
 			defer ra.Close()
 
 			checker, err := image.Sniff(ra)
+			if err == io.EOF {
+				m.Out = img
+				lines <- m
+				return nil
+			}
 			if err != nil {
 				return fmt.Errorf("%s: %w", img, err)
 			}
